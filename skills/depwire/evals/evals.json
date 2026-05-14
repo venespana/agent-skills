@@ -1,0 +1,43 @@
+{
+  "skill_name": "depwire",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to rename the UserService class to UserManager in the server codebase. It's used by about 15 other files. Show me the blast radius and help me plan the rename safely.",
+      "expected_output": "Tool calls: impact_analysis (blast radius), simulate_change (rename preview), verify_change (pre-commit check). Output should include: direct dependents, transitive dependents, affected file count, health delta, broken imports list.",
+      "files": [],
+      "expectations": [
+        "Called impact_analysis with UserService",
+        "Called simulate_change with rename operation",
+        "Reported health_delta from simulation",
+        "Listed broken_imports count",
+        "Provided safe workflow (simulate before apply)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We have tech debt this sprint and I want to do dead code cleanup. Run depwire to find all HIGH confidence dead code in the client package and verify it's truly dead before we delete it.",
+      "expected_output": "Tool calls: find_dead_code with confidence=high, then get_dependents to verify each symbol has no consumers. Script reference to depwire-dead-code.sh.",
+      "files": [],
+      "expectations": [
+        "Called find_dead_code with confidence=high",
+        "For each finding, called get_dependents to verify",
+        "Distinguished between safe-to-delete (no dependents) and needs-review",
+        "Referenced depwire-dead-code.sh workflow"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I need to do a security audit before our release. Run depwire security scan on the server package and for any CRITICAL or HIGH findings, show me the attack scenario and how to fix it.",
+      "expected_output": "Tool calls: security_scan, then impact_analysis for each critical/high finding. Each finding should have: severity with graph-aware explanation, attack scenario, fix pattern.",
+      "files": [],
+      "expectations": [
+        "Called security_scan on server package",
+        "Sorted findings by severity (CRITICAL first)",
+        "For each CRITICAL/HIGH, called impact_analysis",
+        "Provided attack scenario explanation",
+        "Provided code-level fix pattern for each finding"
+      ]
+    }
+  ]
+}
