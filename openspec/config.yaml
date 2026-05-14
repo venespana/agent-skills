@@ -1,0 +1,42 @@
+schema: spec-driven
+
+context: |
+  Tech stack: N/A — Skills repository (no code, only SKILL.md files + supporting assets)
+  Architecture: skills.sh compatible format — each skill is a directory with SKILL.md
+  Skills included: depwire (initial), expandable to more
+  Distribution: Via skills.sh CLI (npx skills add)
+
+strict_tdd: false
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include architecture diagrams for skill structure
+    - Document decisions with rationale
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, documentation)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Follow existing code patterns and conventions
+    - Load relevant skills for the project stack
+  verify:
+    - Verify skill structure follows skills.sh conventions
+    - Compare implementation against every spec scenario
+  archive:
+    - Warn before merging destructive deltas (large removals)
+
+testing:
+  test_runner: NOT FOUND
+  unit: NOT AVAILABLE
+  integration: NOT AVAILABLE
+  e2e: NOT AVAILABLE
+  coverage: NOT AVAILABLE
+  linter: NOT AVAILABLE
+  type_checker: NOT AVAILABLE
+  formatter: NOT AVAILABLE
