@@ -22,6 +22,7 @@ Load when writing, reviewing, or refactoring Node.js server code (`.js`/`.ts` ou
 7. **Comments are WHY only.** No narrative. Names carry intent.
 8. **No magic numbers.** Named constants with units: `DEFAULT_TIMEOUT_MS`.
 9. **Group by feature, not by layer.** `src/orders/` not `src/controllers/` + `src/services/` stacked.
+10. **Prefer early return over nested `if`.** Guard clauses first, main logic at base indentation. Max 2 levels of nesting.
 
 ## Decision Gates
 
@@ -33,6 +34,8 @@ Load when writing, reviewing, or refactoring Node.js server code (`.js`/`.ts` ou
 | `catch (e) {}` | Add logging or rethrow |
 | Callback-style API | Wrap in Promise or use async version |
 | Repeated logic in 4+ places | Extract (DRY) — but only after the 3rd case |
+| 3+ levels of nested `if` | Flatten with guard clauses (early return) |
+| `if` branch returns but `else` still present | Drop the `else` |
 | Speculative parameter "for flexibility" | YAGNI — remove |
 
 ## Execution Steps

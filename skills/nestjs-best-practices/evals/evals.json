@@ -9,7 +9,16 @@
       "anti_patterns_avoided": "0-3 — Avoided all listed anti-patterns? 0=all present, 3=none"
     },
     "pass_threshold": "All rubric items >= 2. Total >= 8/12 to pass.",
-    "applies_principles": ["SRP", "OCP", "LSP", "ISP", "DIP", "YAGNI", "KISS", "DRY"]
+    "applies_principles": [
+      "SRP",
+      "OCP",
+      "LSP",
+      "ISP",
+      "DIP",
+      "YAGNI",
+      "KISS",
+      "DRY"
+    ]
   },
   "evals": [
     {
@@ -26,7 +35,9 @@
         "Generic `Error` replaced with domain exception"
       ],
       "benchmarks": {
-        "principles_applied": ["KISS"],
+        "principles_applied": [
+          "KISS"
+        ],
         "comment_rule_target": "no WHAT/HOW comments",
         "naming_rule_target": "PascalCase classes, camelCase methods",
         "anti_patterns_to_avoid": [
@@ -57,7 +68,9 @@
         "Controller only calls the service method"
       ],
       "benchmarks": {
-        "principles_applied": ["SRP"],
+        "principles_applied": [
+          "SRP"
+        ],
         "comment_rule_target": "WHY only",
         "naming_rule_target": "PascalCase classes, camelCase methods",
         "anti_patterns_to_avoid": [
@@ -89,7 +102,9 @@
         "Validation rules match business constraints"
       ],
       "benchmarks": {
-        "principles_applied": ["DIP"],
+        "principles_applied": [
+          "DIP"
+        ],
         "comment_rule_target": "no comments needed",
         "naming_rule_target": "PascalCase DTO with `Dto` suffix",
         "anti_patterns_to_avoid": [
@@ -120,7 +135,10 @@
         "Service remains testable with mocks/fakes"
       ],
       "benchmarks": {
-        "principles_applied": ["DIP", "SRP"],
+        "principles_applied": [
+          "DIP",
+          "SRP"
+        ],
         "comment_rule_target": "WHY if explaining testability",
         "naming_rule_target": "PascalCase classes",
         "anti_patterns_to_avoid": [
@@ -151,7 +169,9 @@
         "Cross-module access via exports, not direct import"
       ],
       "benchmarks": {
-        "principles_applied": ["SRP"],
+        "principles_applied": [
+          "SRP"
+        ],
         "comment_rule_target": "WHY if explaining bounded contexts",
         "naming_rule_target": "PascalCase modules",
         "anti_patterns_to_avoid": [
@@ -193,6 +213,39 @@
         "rubric": {
           "principles_adherence": 3,
           "comment_quality": 2,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 7,
+      "prompt": "This NestJS service method has deeply nested conditionals. Refactor using early returns:\n```typescript\n@Injectable()\nexport class OrderService {\n  async processOrder(orderId: number, userId: number): Promise<Order> {\n    const order = await this.orderRepo.findById(orderId);\n    if (order) {\n      if (order.status === 'pending') {\n        const user = await this.userRepo.findById(userId);\n        if (user) {\n          if (user.hasPermission('process_orders')) {\n            if (order.total > 0) {\n              order.status = 'processed';\n              return this.orderRepo.save(order);\n            } else {\n              throw new BadRequestException('Invalid total');\n            }\n          } else {\n            throw new ForbiddenException('No permission');\n          }\n        } else {\n          throw new NotFoundException('User not found');\n        }\n      } else {\n        throw new BadRequestException('Order is not pending');\n      }\n    } else {\n      throw new NotFoundException('Order not found');\n    }\n  }\n}\n```",
+      "expected_output": "Flatten with guard clauses. Validate order existence, status, user existence, permission, and total — each throwing early. The save call is at base level.",
+      "expectations": [
+        "Each validation is a guard clause with early throw",
+        "Happy path (status update + save) at base indentation",
+        "No more than 1 level of nesting",
+        "No else branches after throwing ifs",
+        "Same exceptions thrown for same conditions"
+      ],
+      "category": "early-return",
+      "files": [],
+      "benchmarks": {
+        "principles_applied": [
+          "KISS"
+        ],
+        "comment_rule_target": "no comments needed (code is self-explanatory)",
+        "naming_rule_target": "descriptive, language-appropriate casing",
+        "anti_patterns_to_avoid": [
+          "nested if/else chains",
+          "happy path buried in nesting",
+          "else after returning if",
+          "3+ levels of indentation"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
           "naming_descriptiveness": 2,
           "anti_patterns_avoided": 3
         }

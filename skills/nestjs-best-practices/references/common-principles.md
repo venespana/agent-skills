@@ -120,6 +120,49 @@ If the code is self-explanatory after good naming, **write no comment**. Silence
 - **≤3 parameters** as a guide. More → group into a config/options object.
 - **No hidden side effects**: the name declares what the function does. If it also writes to a file, rename or split.
 
+### 6.5 Control Flow — Early Return Over Nesting
+
+**Always prefer guard clauses (early return) over nested `if/else`.** The main logic stays at the base indentation level. Nested conditionals increase cognitive load and hide the happy path.
+
+**BAD — nested conditionals, happy path buried:**
+
+```typescript
+function processOrder(order: Order): Result {
+  if (order) {
+    if (order.isValid) {
+      if (order.items.length > 0) {
+        // actual logic buried 3 levels deep
+        return calculateTotal(order);
+      } else {
+        return Result.error('No items');
+      }
+    } else {
+      return Result.error('Invalid order');
+    }
+  } else {
+    return Result.error('No order');
+  }
+}
+```
+
+**GOOD — guard clauses, flat structure:**
+
+```typescript
+function processOrder(order: Order): Result {
+  if (!order) return Result.error('No order');
+  if (!order.isValid) return Result.error('Invalid order');
+  if (order.items.length === 0) return Result.error('No items');
+
+  return calculateTotal(order);
+}
+```
+
+**Rules:**
+- Validate preconditions first, return early. The happy path is the last thing in the function.
+- Never nest `if` more than 2 levels. If you hit level 3, extract a function or use guard clauses.
+- `else` is a smell when the `if` branch returns. Drop the `else`.
+- This applies to every language: `return` (JS/TS/GDScript), `guard` + early exit patterns.
+
 ---
 
 ## 7. Decision Matrix — when to apply which principle
@@ -135,3 +178,5 @@ If the code is self-explanatory after good naming, **write no comment**. Silence
 | "I can't test this without spinning up a real DB" | DIP (inject) |
 | "This function is 50 lines long" | KISS (extract) |
 | "I keep writing `// this does X` over my code" | Rename. Delete the comment. |
+| "I have 3+ levels of nested `if`" | Early return (guard clauses, flatten) |
+| "My `if` branch returns and I still wrote `else`" | Drop the `else` |

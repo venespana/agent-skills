@@ -23,7 +23,7 @@ Open for extension, closed for modification. Add behavior without editing existi
 ### 1.3 LSP — Liskov Substitution
 A subtype must be substitutable for its base type without breaking expected behavior.
 
-**Test**: if a subclass must throw `NotImplementedError`, override to throw, or weaken preconditions, it violates LSP.
+**Test**: if a subclass must `push_error("not implemented")` and return early, or weaken preconditions, it violates LSP.
 
 ### 1.4 ISP — Interface Segregation
 Many specific interfaces > one general-purpose interface.
@@ -91,34 +91,81 @@ The most-misunderstood principle. It is **not** "one class = one method". It is 
 ## 6. Comment & Naming Convention (HARD RULES)
 
 ### 6.1 Naming
-- **Reveal intent**: `userCanRetryPayment` > `flag1`. `retryPaymentWithBackoff` > `doIt`.
+- **Reveal intent**: `user_can_retry_payment` > `flag1`. `retry_payment_with_backoff` > `do_it`.
 - **Booleans use a prefix**: `is` / `has` / `can` / `should` (or `es` / `tiene` / `puede` / `debe` if the project is Spanish-language).
-- **No type prefixes**: no Hungarian notation, no `bEnabled`, no `strName`.
-- **Functions are verbs or verb phrases**: `calculateTotal`, `retryWithBackoff`.
-- **Variables are nouns or noun phrases**: `userOrder`, `retryAttempts`.
+- **No type prefixes**: no Hungarian notation, no `b_enabled`, no `str_name`.
+- **Functions are verbs or verb phrases**: `calculate_total`, `retry_with_backoff`.
+- **Variables are nouns or noun phrases**: `user_order`, `retry_attempts`.
 - **Constants are SCREAMING_SNAKE_CASE** with the unit or context in the name: `MAX_RETRY_ATTEMPTS`, `DEFAULT_TIMEOUT_MS`.
 
 ### 6.2 Comments — only the WHY
 
 | Type | Status | Example |
 |---|---|---|
-| **WHY** (motivation, constraint, decision, workaround) | REQUIRED when non-obvious | `// Retry up to 3x because the upstream returns 502 under load` |
-| **WHAT** (narrating the code) | FORBIDDEN | `// increment counter` over `counter++` |
-| **HOW** (explaining the mechanism step by step) | FORBIDDEN | `// loop through array and sum values` over a 2-line for |
-| **API/JSDoc** (public contract) | REQUIRED for public surfaces | `@param userId` on a library function |
+| **WHY** (motivation, constraint, decision, workaround) | REQUIRED when non-obvious | `# Retry up to 3x because the upstream returns 502 under load` |
+| **WHAT** (narrating the code) | FORBIDDEN | `# increment counter` over `counter += 1` |
+| **HOW** (explaining the mechanism step by step) | FORBIDDEN | `# loop through array and sum values` over a 2-line for |
+| **API/Doc comments** (public contract) | REQUIRED for public surfaces | `##` doc comment above the function describing params/return |
 
 If the code is self-explanatory after good naming, **write no comment**. Silence is correct.
 
 ### 6.3 Magic numbers
 - All numeric/string literals with business meaning → named constants.
-- `MAX_RETRY_ATTEMPTS = 3` > `3` in the body.
-- Exception: well-known mathematical constants (`2 * Math.PI`), zero, one in trivial loops.
+- `const MAX_RETRY_ATTEMPTS := 3` > `3` in the body.
+- Exception: well-known mathematical constants (`2 * PI`), zero, one in trivial loops.
 
 ### 6.4 Functions
 - **One responsibility** (a single verb describes it).
 - **≤20 lines** as a guide. Extract when exceeded.
 - **≤3 parameters** as a guide. More → group into a config/options object.
 - **No hidden side effects**: the name declares what the function does. If it also writes to a file, rename or split.
+
+### 6.5 Control Flow — Early Return Over Nesting
+
+**Always prefer guard clauses (early return) over nested `if/else`.** The main logic stays at the base indentation level. Nested conditionals increase cognitive load and hide the happy path.
+
+**BAD — nested conditionals, happy path buried:**
+
+```gdscript
+func process_damage(target: Node, amount: int, source: Node) -> Dictionary:
+    if target:
+        if target.has_method("take_damage"):
+            if amount > 0:
+                if source:
+                    target.take_damage(amount)
+                    return {"success": true}
+                else:
+                    return {"success": false, "reason": "no source"}
+            else:
+                return {"success": false, "reason": "invalid amount"}
+        else:
+            return {"success": false, "reason": "cannot take damage"}
+    else:
+        return {"success": false, "reason": "no target"}
+```
+
+**GOOD — guard clauses, flat structure:**
+
+```gdscript
+func process_damage(target: Node, amount: int, source: Node) -> Dictionary:
+    if not target:
+        return {"success": false, "reason": "no target"}
+    if not target.has_method("take_damage"):
+        return {"success": false, "reason": "cannot take damage"}
+    if amount <= 0:
+        return {"success": false, "reason": "invalid amount"}
+    if not source:
+        return {"success": false, "reason": "no source"}
+
+    target.take_damage(amount)
+    return {"success": true}
+```
+
+**Rules:**
+- Validate preconditions first, return early. The happy path is the last thing in the function.
+- Never nest `if` more than 2 levels. If you hit level 3, extract a function or use guard clauses.
+- `else` is a smell when the `if` branch returns. Drop the `else`.
+- This applies to every language: `return` (JS/TS/GDScript), `guard` + early exit patterns.
 
 ---
 
@@ -134,4 +181,6 @@ If the code is self-explanatory after good naming, **write no comment**. Silence
 | "My interface has methods nobody uses" | ISP (split) |
 | "I can't test this without spinning up a real DB" | DIP (inject) |
 | "This function is 50 lines long" | KISS (extract) |
-| "I keep writing `// this does X` over my code" | Rename. Delete the comment. |
+| "I keep writing `# this does X` over my code" | Rename. Delete the comment. |
+| "I have 3+ levels of nested `if`" | Early return (guard clauses, flatten) |
+| "My `if` branch returns and I still wrote `else`" | Drop the `else` |

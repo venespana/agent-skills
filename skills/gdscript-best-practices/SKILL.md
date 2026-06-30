@@ -21,6 +21,7 @@ Load when writing, reviewing, or refactoring GDScript (`.gd`) files in Godot 4.x
 6. **One responsibility per scene/script.** Split god classes by actor (domain, persistence, UI, audio).
 7. **Autoloads are stateless services only.** Never per-instance state.
 8. **`_process` stays cheap.** Heavy logic goes to signals + state machines.
+9. **Prefer early return over nested `if`.** Guard clauses first, main logic at base indentation. Max 2 levels of nesting.
 
 ## Decision Gates
 
@@ -31,6 +32,8 @@ Load when writing, reviewing, or refactoring GDScript (`.gd`) files in Godot 4.x
 | Autoload growing past 10 methods | It is a god object — decompose |
 | Function > 20 lines | Extract; likely violates SRP |
 | `# comment` narrating code | Delete it; rename if unclear |
+| 3+ levels of nested `if` | Flatten with guard clauses (early return) |
+| `if` branch returns but `else` still present | Drop the `else` |
 | Speculative method "for flexibility" | YAGNI — remove until a real caller exists |
 
 ## Execution Steps

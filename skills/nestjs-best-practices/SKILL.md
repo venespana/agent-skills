@@ -22,6 +22,7 @@ Load when writing, reviewing, or refactoring NestJS code (modules, controllers, 
 7. **Comments are WHY only.** No narrative. Names carry intent.
 8. **No magic numbers.** Named constants.
 9. **Errors via exception filters.** Throw domain exceptions; let filters handle HTTP mapping.
+10. **Prefer early return over nested `if`.** Guard clauses first, main logic at base indentation. Max 2 levels of nesting.
 
 ## Decision Gates
 
@@ -34,6 +35,8 @@ Load when writing, reviewing, or refactoring NestJS code (modules, controllers, 
 | Auth check inside controller | Extract to a Guard |
 | Logging scattered in services | Extract to a global interceptor |
 | Service doing validation + persistence + notification | Split by SRP |
+| 3+ levels of nested `if` | Flatten with guard clauses (early return) |
+| `if` branch returns but `else` still present | Drop the `else` |
 
 ## Execution Steps
 

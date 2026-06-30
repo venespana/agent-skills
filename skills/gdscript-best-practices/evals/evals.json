@@ -9,7 +9,16 @@
       "anti_patterns_avoided": "0-3 — Avoided all listed anti-patterns? 0=all present, 3=none"
     },
     "pass_threshold": "All rubric items >= 2. Total >= 8/12 to pass.",
-    "applies_principles": ["SRP", "OCP", "LSP", "ISP", "DIP", "YAGNI", "KISS", "DRY"]
+    "applies_principles": [
+      "SRP",
+      "OCP",
+      "LSP",
+      "ISP",
+      "DIP",
+      "YAGNI",
+      "KISS",
+      "DRY"
+    ]
   },
   "evals": [
     {
@@ -26,7 +35,9 @@
         "If 2x has business meaning, it is a named constant"
       ],
       "benchmarks": {
-        "principles_applied": ["KISS"],
+        "principles_applied": [
+          "KISS"
+        ],
         "comment_rule_target": "no WHAT/HOW comments",
         "naming_rule_target": "snake_case, descriptive, verbs for functions",
         "anti_patterns_to_avoid": [
@@ -85,7 +96,9 @@
         "Each new class has one clear actor"
       ],
       "benchmarks": {
-        "principles_applied": ["SRP"],
+        "principles_applied": [
+          "SRP"
+        ],
         "comment_rule_target": "WHY comments only",
         "naming_rule_target": "PascalCase classes, snake_case methods",
         "anti_patterns_to_avoid": [
@@ -114,7 +127,10 @@
         "Does not invent a generic strategy pattern for one implementation"
       ],
       "benchmarks": {
-        "principles_applied": ["YAGNI", "KISS"],
+        "principles_applied": [
+          "YAGNI",
+          "KISS"
+        ],
         "comment_rule_target": "no comments needed",
         "naming_rule_target": "snake_case methods",
         "anti_patterns_to_avoid": [
@@ -172,7 +188,9 @@
         "Keeps autoload for truly global stateless services only"
       ],
       "benchmarks": {
-        "principles_applied": ["SRP"],
+        "principles_applied": [
+          "SRP"
+        ],
         "comment_rule_target": "WHY if explaining the autoload rule",
         "naming_rule_target": "snake_case vars",
         "anti_patterns_to_avoid": [
@@ -183,6 +201,39 @@
         "rubric": {
           "principles_adherence": 3,
           "comment_quality": 2,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 7,
+      "prompt": "This function has nested conditionals. Refactor using early returns:\n```gdscript\nfunc process_damage(target: Node, amount: int, source: Node) -> Dictionary:\n    if target:\n        if target.has_method(\"take_damage\"):\n            if amount > 0:\n                if source:\n                    target.take_damage(amount)\n                    return {\"success\": true}\n                else:\n                    return {\"success\": false, \"reason\": \"no source\"}\n            else:\n                return {\"success\": false, \"reason\": \"invalid amount\"}\n        else:\n            return {\"success\": false, \"reason\": \"cannot take damage\"}\n    else:\n        return {\"success\": false, \"reason\": \"no target\"}\n```",
+      "expected_output": "Flatten with guard clauses. Validate each precondition and return early. Main logic (take_damage call) at base indentation.",
+      "expectations": [
+        "All guard conditions checked first with early return",
+        "Main logic at base indentation level",
+        "No more than 1 level of nesting",
+        "No else branches after returning ifs",
+        "Same behavior preserved"
+      ],
+      "category": "early-return",
+      "files": [],
+      "benchmarks": {
+        "principles_applied": [
+          "KISS"
+        ],
+        "comment_rule_target": "no comments needed (code is self-explanatory)",
+        "naming_rule_target": "descriptive, language-appropriate casing",
+        "anti_patterns_to_avoid": [
+          "nested if/else chains",
+          "happy path buried in nesting",
+          "else after returning if",
+          "3+ levels of indentation"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
           "naming_descriptiveness": 2,
           "anti_patterns_avoided": 3
         }

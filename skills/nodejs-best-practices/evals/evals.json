@@ -9,7 +9,16 @@
       "anti_patterns_avoided": "0-3 — Avoided all listed anti-patterns? 0=all present, 3=none"
     },
     "pass_threshold": "All rubric items >= 2. Total >= 8/12 to pass.",
-    "applies_principles": ["SRP", "OCP", "LSP", "ISP", "DIP", "YAGNI", "KISS", "DRY"]
+    "applies_principles": [
+      "SRP",
+      "OCP",
+      "LSP",
+      "ISP",
+      "DIP",
+      "YAGNI",
+      "KISS",
+      "DRY"
+    ]
   },
   "evals": [
     {
@@ -26,7 +35,9 @@
         "No magic boolean without context"
       ],
       "benchmarks": {
-        "principles_applied": ["KISS"],
+        "principles_applied": [
+          "KISS"
+        ],
         "comment_rule_target": "no WHAT/HOW comments",
         "naming_rule_target": "camelCase, descriptive, verb phrases for functions",
         "anti_patterns_to_avoid": [
@@ -86,7 +97,9 @@
         "Controller only orchestrates"
       ],
       "benchmarks": {
-        "principles_applied": ["SRP"],
+        "principles_applied": [
+          "SRP"
+        ],
         "comment_rule_target": "WHY only",
         "naming_rule_target": "camelCase, descriptive file/class names",
         "anti_patterns_to_avoid": [
@@ -116,7 +129,10 @@
         "Does not preserve speculative features"
       ],
       "benchmarks": {
-        "principles_applied": ["YAGNI", "KISS"],
+        "principles_applied": [
+          "YAGNI",
+          "KISS"
+        ],
         "comment_rule_target": "no comments needed",
         "naming_rule_target": "PascalCase classes",
         "anti_patterns_to_avoid": [
@@ -146,7 +162,10 @@
         "Fails fast on missing required config"
       ],
       "benchmarks": {
-        "principles_applied": ["DIP", "SRP"],
+        "principles_applied": [
+          "DIP",
+          "SRP"
+        ],
         "comment_rule_target": "WHY if explaining startup validation",
         "naming_rule_target": "SCREAMING_SNAKE for env, camelCase for config",
         "anti_patterns_to_avoid": [
@@ -188,6 +207,39 @@
         "rubric": {
           "principles_adherence": 3,
           "comment_quality": 2,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 7,
+      "prompt": "This Express handler has deeply nested conditionals. Refactor using early returns:\n```javascript\nasync function createUser(req, res) {\n  if (req.body) {\n    if (req.body.email) {\n      if (req.body.password) {\n        if (req.body.password.length >= 8) {\n          const user = await db.createUser(req.body);\n          if (user) {\n            res.json(user);\n          } else {\n            res.status(500).json({ error: 'creation failed' });\n          }\n        } else {\n          res.status(400).json({ error: 'password too short' });\n        }\n      } else {\n        res.status(400).json({ error: 'password required' });\n      }\n    } else {\n      res.status(400).json({ error: 'email required' });\n    }\n  } else {\n    res.status(400).json({ error: 'body required' });\n  }\n}\n```",
+      "expected_output": "Flatten with guard clauses. Each validation returns early. The happy path (createUser + response) is at the base level.",
+      "expectations": [
+        "Each validation is a guard clause with early return",
+        "Happy path at base indentation",
+        "No more than 1 level of nesting in the happy path",
+        "No else after returning if",
+        "Same validation behavior preserved"
+      ],
+      "category": "early-return",
+      "files": [],
+      "benchmarks": {
+        "principles_applied": [
+          "KISS"
+        ],
+        "comment_rule_target": "no comments needed (code is self-explanatory)",
+        "naming_rule_target": "descriptive, language-appropriate casing",
+        "anti_patterns_to_avoid": [
+          "nested if/else chains",
+          "happy path buried in nesting",
+          "else after returning if",
+          "3+ levels of indentation"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
           "naming_descriptiveness": 2,
           "anti_patterns_avoided": 3
         }

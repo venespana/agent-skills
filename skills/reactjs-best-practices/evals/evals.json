@@ -1,6 +1,6 @@
 {
   "skill_name": "reactjs-best-practices",
-  "version": "1.0",
+  "version": "1.1",
   "benchmark_schema": {
     "rubric": {
       "principles_adherence": "0-3 — Applied relevant SOLID/YAGNI/KISS/DRY? 0=ignored, 1=mentioned, 2=applied, 3=applied with trade-off discussion",
@@ -9,7 +9,16 @@
       "anti_patterns_avoided": "0-3 — Avoided all listed anti-patterns? 0=all present, 3=none"
     },
     "pass_threshold": "All rubric items >= 2. Total >= 8/12 to pass.",
-    "applies_principles": ["SRP", "OCP", "LSP", "ISP", "DIP", "YAGNI", "KISS", "DRY"]
+    "applies_principles": [
+      "SRP",
+      "OCP",
+      "LSP",
+      "ISP",
+      "DIP",
+      "YAGNI",
+      "KISS",
+      "DRY"
+    ]
   },
   "evals": [
     {
@@ -26,7 +35,9 @@
         "Item property `.n` renamed to something descriptive"
       ],
       "benchmarks": {
-        "principles_applied": ["KISS"],
+        "principles_applied": [
+          "KISS"
+        ],
         "comment_rule_target": "no WHAT/HOW comments",
         "naming_rule_target": "PascalCase components, camelCase vars, descriptive props",
         "anti_patterns_to_avoid": [
@@ -172,7 +183,10 @@
         "Dashboard becomes an orchestrator, not a monolith"
       ],
       "benchmarks": {
-        "principles_applied": ["SRP", "KISS"],
+        "principles_applied": [
+          "SRP",
+          "KISS"
+        ],
         "comment_rule_target": "WHY only",
         "naming_rule_target": "PascalCase components, `use` prefix for hooks",
         "anti_patterns_to_avoid": [
@@ -185,6 +199,136 @@
           "principles_adherence": 3,
           "comment_quality": 2,
           "naming_descriptiveness": 3,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 7,
+      "category": "performance-async-waterfalls",
+      "prompt": "This component fetches data sequentially. Optimize it:\n```jsx\nfunction UserProfile({ userId }) {\n  const [user, setUser] = useState(null);\n  const [posts, setPosts] = useState([]);\n  const [friends, setFriends] = useState([]);\n\n  useEffect(() => {\n    fetchUser(userId).then(setUser);\n    fetchPosts(userId).then(setPosts);\n    fetchFriends(userId).then(setFriends);\n  }, [userId]);\n\n  if (!user) return <Loading />;\n  return <Profile user={user} posts={posts} friends={friends} />\n}\n```",
+      "expected_output": "The three fetches are independent but fire as separate promises. Use Promise.all to run them in parallel and eliminate the waterfall. Handle errors as a group.",
+      "files": [],
+      "expectations": [
+        "Identifies sequential fetch anti-pattern",
+        "Wraps independent operations in Promise.all",
+        "All three fetches run in parallel",
+        "Error handling covers the combined promise"
+      ],
+      "benchmarks": {
+        "principles_applied": [
+          "KISS"
+        ],
+        "comment_rule_target": "no comments needed",
+        "naming_rule_target": "camelCase, descriptive",
+        "anti_patterns_to_avoid": [
+          "sequential independent awaits",
+          "waterfall fetching",
+          "no error handling on combined promise"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 8,
+      "category": "performance-derived-state",
+      "prompt": "This component uses useEffect to sync derived state. Fix it:\n```jsx\nfunction SearchResults({ items, query }) {\n  const [filtered, setFiltered] = useState(items);\n\n  useEffect(() => {\n    // filter items by query\n    const results = items.filter(i => i.name.includes(query));\n    setFiltered(results);\n  }, [items, query]);\n\n  return <List items={filtered} />\n}\n```",
+      "expected_output": "Derived state should be calculated during render, not synced via useEffect. Replace with useMemo or direct inline computation. The effect causes an extra render cycle.",
+      "files": [],
+      "expectations": [
+        "Identifies useEffect-for-derived-state anti-pattern",
+        "Removes the useEffect entirely",
+        "Uses useMemo or inline computation for filtered results",
+        "No extra render cycle from state syncing",
+        "Narrative comment removed"
+      ],
+      "benchmarks": {
+        "principles_applied": [
+          "KISS"
+        ],
+        "comment_rule_target": "no narrative comments",
+        "naming_rule_target": "camelCase, descriptive",
+        "anti_patterns_to_avoid": [
+          "useEffect for derived state",
+          "extra render cycle",
+          "narrative comments",
+          "unnecessary state for computed values"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 9,
+      "category": "performance-bundle-inline-components",
+      "prompt": "This component has two performance issues. Find and fix them:\n```jsx\nimport { Editor } from 'heavy-monaco-editor';\n\nfunction CodePanel({ code, showLineNumbers }) {\n  const LineNumbers = () => {\n    return <div className=\"line-numbers\">{/* ... */}</div>;\n  };\n\n  return (\n    <div>\n      <Editor value={code} />\n      {showLineNumbers && <LineNumbers />}\n    </div>\n  );\n}\n```",
+      "expected_output": "Two issues: (1) Editor is a heavy dependency statically imported — use React.lazy + Suspense. (2) LineNumbers is defined inside CodePanel — it remounts on every render. Extract it to module scope.",
+      "files": [],
+      "expectations": [
+        "Identifies heavy static import (Editor)",
+        "Replaces with React.lazy + Suspense",
+        "Identifies inline component definition (LineNumbers)",
+        "Extracts LineNumbers to module scope",
+        "No component definitions inside other components"
+      ],
+      "benchmarks": {
+        "principles_applied": [
+          "KISS"
+        ],
+        "comment_rule_target": "WHY only if explaining remount behavior",
+        "naming_rule_target": "PascalCase components",
+        "anti_patterns_to_avoid": [
+          "static import of heavy dependency",
+          "component defined inside component",
+          "unnecessary remounts",
+          "no code splitting"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 10,
+      "prompt": "This component has nested conditionals in its render logic. Refactor using early returns:\n```jsx\nfunction ProductCard({ product, user, isLoading }) {\n  if (!isLoading) {\n    if (product) {\n      if (product.inStock) {\n        if (user) {\n          if (user.canBuy) {\n            return (\n              <div>\n                <h1>{product.name}</h1>\n                <button onClick={() => addToCart(product)}>Buy</button>\n              </div>\n            );\n          } else {\n            return <p>You cannot buy this item</p>;\n          }\n        } else {\n          return <p>Please log in</p>;\n        }\n      } else {\n        return <p>Out of stock</p>;\n      }\n    } else {\n      return <p>Product not found</p>;\n    }\n  } else {\n    return <Loading />;\n  }\n}\n```",
+      "expected_output": "Flatten with guard clauses. Check loading, then product existence, then stock, then user, then permission — each returning early. The buy button renders at base level.",
+      "expectations": [
+        "Each condition is a guard clause with early return",
+        "Happy path (product card with buy button) at base indentation",
+        "No more than 1 level of nesting",
+        "No else branches after returning ifs",
+        "Component remains pure (same input = same output)"
+      ],
+      "category": "early-return",
+      "files": [],
+      "benchmarks": {
+        "principles_applied": [
+          "KISS"
+        ],
+        "comment_rule_target": "no comments needed (code is self-explanatory)",
+        "naming_rule_target": "descriptive, language-appropriate casing",
+        "anti_patterns_to_avoid": [
+          "nested if/else chains",
+          "happy path buried in nesting",
+          "else after returning if",
+          "3+ levels of indentation"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
+          "naming_descriptiveness": 2,
           "anti_patterns_avoided": 3
         }
       }
