@@ -1,6 +1,6 @@
 {
   "skill_name": "nestjs-best-practices",
-  "version": "1.0",
+  "version": "1.1",
   "benchmark_schema": {
     "rubric": {
       "principles_adherence": "0-3 — Applied relevant SOLID/YAGNI/KISS/DRY? 0=ignored, 1=mentioned, 2=applied, 3=applied with trade-off discussion",
@@ -242,6 +242,107 @@
           "happy path buried in nesting",
           "else after returning if",
           "3+ levels of indentation"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 8,
+      "category": "module-architecture",
+      "prompt": "This AppModule has everything piled in. How should it be organized?\n```typescript\n@Module({\n  imports: [TypeOrmModule.forRoot(), TypeOrmModule.forFeature([User, Order, Product, Payment])],\n  controllers: [UsersController, OrdersController, ProductsController, PaymentsController],\n  providers: [UsersService, OrdersService, ProductsService, PaymentsService, EmailService, AuthService, ConfigService],\n})\nexport class AppModule {}\n```",
+      "expected_output": "Split into feature modules (UsersModule, OrdersModule, ProductsModule, PaymentsModule). Each has its own controllers, services, entities. SharedService for cross-cutting. AppModule only imports feature modules. TypeOrmModule.forFeature goes inside each feature module.",
+      "files": [],
+      "expectations": [
+        "Each domain area gets its own feature module",
+        "AppModule only imports feature modules",
+        "Services move to their respective modules",
+        "Shared services in a SharedModule",
+        "TypeOrmModule.forFeature moved into feature modules"
+      ],
+      "benchmarks": {
+        "principles_applied": [
+          "SRP"
+        ],
+        "comment_rule_target": "WHY only",
+        "naming_rule_target": "PascalCase modules with Module suffix",
+        "anti_patterns_to_avoid": [
+          "god module",
+          "all services in root",
+          "no bounded contexts",
+          "TypeOrmModule.forFeature in root"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 9,
+      "category": "di-and-testing",
+      "prompt": "This service is hard to test because of tight coupling. Fix the DI:\n```typescript\n@Injectable()\nexport class OrdersService {\n  async createOrder(dto: CreateOrderDto) {\n    const repo = new TypeOrmOrderRepository();\n    const order = await repo.save(dto);\n    const mailer = new NodemailerService();\n    await mailer.send(order.email, 'Order confirmed');\n    const cache = new RedisCacheService();\n    await cache.set(`order:${order.id}`, order, 300);\n    return order;\n  }\n}\n```",
+      "expected_output": "Extract interfaces (IOrderRepository, IEmailService, ICacheService). Inject via constructor. Register with tokens in module. Now testable with in-memory fakes.",
+      "files": [],
+      "expectations": [
+        "All dependencies injected via constructor",
+        "No `new` inside the service",
+        "Interfaces/tokens used for abstraction",
+        "Service is testable without DB/SMTP/Redis",
+        "Module registers concrete implementations against tokens"
+      ],
+      "benchmarks": {
+        "principles_applied": [
+          "DIP",
+          "SRP"
+        ],
+        "comment_rule_target": "WHY only",
+        "naming_rule_target": "PascalCase, I prefix for interfaces",
+        "anti_patterns_to_avoid": [
+          "new inside service",
+          "hardcoded dependencies",
+          "no abstraction layer",
+          "untestable code"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 10,
+      "category": "validation-and-dto",
+      "prompt": "This endpoint has multiple issues. Fix them all:\n```typescript\n@Controller('users')\nexport class UsersController {\n  constructor(private readonly usersService: UsersService) {}\n\n  @Post()\n  async create(@Body() body: any) {\n    return this.usersService.create(body);\n  }\n\n  @Get(':id')\n  async findOne(@Param('id') id: string) {\n    return this.usersService.findById(id);\n  }\n\n  @Get()\n  async findAll(@Query('page') page: string) {\n    return this.usersService.findAll(parseInt(page));\n  }\n}\n```",
+      "expected_output": "Create CreateUserDto with class-validator decorators. Validate @Param with ParseUUIDPipe. Validate @Query with ParseIntPipe. Remove `any` types. Define UserResponseDto for output.",
+      "files": [],
+      "expectations": [
+        "CreateUserDto with validation decorators (@IsEmail, @IsString, @MinLength)",
+        "@Body typed as CreateUserDto, not any",
+        "@Param('id') uses ParseUUIDPipe",
+        "@Query('page') uses ParseIntPipe",
+        "Response DTO or @Expose/@Exclude for output"
+      ],
+      "benchmarks": {
+        "principles_applied": [
+          "DIP"
+        ],
+        "comment_rule_target": "no comments needed",
+        "naming_rule_target": "PascalCase DTOs with Dto suffix",
+        "anti_patterns_to_avoid": [
+          "any as body type",
+          "unvalidated params",
+          "parseInt in handler",
+          "no response serialization",
+          "missing validation decorators"
         ],
         "rubric": {
           "principles_adherence": 3,
