@@ -1,0 +1,202 @@
+{
+  "skill_name": "nestjs-best-practices",
+  "version": "1.0",
+  "benchmark_schema": {
+    "rubric": {
+      "principles_adherence": "0-3 — Applied relevant SOLID/YAGNI/KISS/DRY? 0=ignored, 1=mentioned, 2=applied, 3=applied with trade-off discussion",
+      "comment_quality": "0-3 — WHY-only comments? 0=narrative, 1=mixed, 2=mostly WHY, 3=WHY only or none needed",
+      "naming_descriptiveness": "0-3 — Intentional names? 0=single letters, 3=self-documenting",
+      "anti_patterns_avoided": "0-3 — Avoided all listed anti-patterns? 0=all present, 3=none"
+    },
+    "pass_threshold": "All rubric items >= 2. Total >= 8/12 to pass.",
+    "applies_principles": ["SRP", "OCP", "LSP", "ISP", "DIP", "YAGNI", "KISS", "DRY"]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "category": "naming-and-comments",
+      "prompt": "Review this NestJS service and improve it:\n```typescript\n@Injectable()\nexport class Svc {\n  // get data from db\n  async g(id: number) {\n    const d = await this.repo.findOne(id);\n    // check if exists\n    if (!d) throw new Error('not found');\n    return d;\n    // return the data\n  }\n}\n```",
+      "expected_output": "Service renamed to a descriptive noun. Method renamed to a verb phrase. Variables renamed. Comments removed. Domain-specific error thrown.",
+      "files": [],
+      "expectations": [
+        "Service class renamed (e.g., `UserService`)",
+        "Method renamed (e.g., `findById` or `getUserById`)",
+        "Variables renamed (`d` → `user` or `entity`)",
+        "Narrative comments removed",
+        "Generic `Error` replaced with domain exception"
+      ],
+      "benchmarks": {
+        "principles_applied": ["KISS"],
+        "comment_rule_target": "no WHAT/HOW comments",
+        "naming_rule_target": "PascalCase classes, camelCase methods",
+        "anti_patterns_to_avoid": [
+          "single-letter names",
+          "abbreviated class name `Svc`",
+          "narrative comments",
+          "generic Error instead of domain exception"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
+          "naming_descriptiveness": 3,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 2,
+      "category": "fat-controller",
+      "prompt": "This controller has business logic. Fix it:\n```typescript\n@Controller('orders')\nexport class OrdersController {\n  constructor(private readonly db: Database) {}\n\n  @Post()\n  async create(@Body() body: any) {\n    // validate total is positive\n    if (body.total <= 0) throw new BadRequestException('Invalid total');\n    // apply discount\n    if (body.discountCode === 'SUMMER') {\n      body.total *= 0.9;\n    }\n    // save\n    const order = await this.db.query('INSERT INTO orders ...', body);\n    // send email\n    await this.db.query('INSERT INTO emails ...', { to: body.email });\n    return order;\n  }\n}\n```",
+      "expected_output": "Controller stays thin. Validation moves to DTO + ValidationPipe. Discount logic moves to service. Persistence moves to repository. Email moves to notification service. Controller only orchestrates.",
+      "files": [],
+      "expectations": [
+        "Validation extracted to DTO with class-validator decorators",
+        "Discount calculation moved to service",
+        "DB access abstracted behind repository/service",
+        "Email logic moved to notification service",
+        "Controller only calls the service method"
+      ],
+      "benchmarks": {
+        "principles_applied": ["SRP"],
+        "comment_rule_target": "WHY only",
+        "naming_rule_target": "PascalCase classes, camelCase methods",
+        "anti_patterns_to_avoid": [
+          "business logic in controller",
+          "inline validation instead of DTO",
+          "raw SQL in controller",
+          "multiple concerns in one method",
+          "narrative comments"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 3,
+      "category": "missing-dto",
+      "prompt": "This endpoint accepts unvalidated input. Fix it:\n```typescript\n@Post('users')\nasync createUser(@Body() body: any) {\n  return this.userService.create(body);\n}\n```",
+      "expected_output": "Create a `CreateUserDto` with class-validator decorators (`@IsEmail`, `@IsString`, `@MinLength`). Use it as the type for `@Body()`. Enable global ValidationPipe.",
+      "files": [],
+      "expectations": [
+        "DTO class created with validation decorators",
+        "DTO used as @Body() type",
+        "Global ValidationPipe enabled",
+        "No `any` in the signature",
+        "Validation rules match business constraints"
+      ],
+      "benchmarks": {
+        "principles_applied": ["DIP"],
+        "comment_rule_target": "no comments needed",
+        "naming_rule_target": "PascalCase DTO with `Dto` suffix",
+        "anti_patterns_to_avoid": [
+          "any as body type",
+          "no validation",
+          "no DTO",
+          "trusting raw input"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 4,
+      "category": "dependency-injection",
+      "prompt": "What is wrong with this service?\n```typescript\n@Injectable()\nexport class PaymentService {\n  async processPayment(orderId: number) {\n    const repo = new OrderRepository();\n    const order = await repo.findById(orderId);\n    const gateway = new StripeGateway(process.env.STRIPE_KEY);\n    return gateway.charge(order.total);\n  }\n}\n```",
+      "expected_output": "`new` inside a service bypasses DI. Inject `OrderRepository` and `StripeGateway` via constructor. Config should come from a validated config service, not `process.env` inline.",
+      "files": [],
+      "expectations": [
+        "OrderRepository injected via constructor",
+        "StripeGateway injected via constructor",
+        "No `new` inside business logic",
+        "API key sourced from injected config, not process.env inline",
+        "Service remains testable with mocks/fakes"
+      ],
+      "benchmarks": {
+        "principles_applied": ["DIP", "SRP"],
+        "comment_rule_target": "WHY if explaining testability",
+        "naming_rule_target": "PascalCase classes",
+        "anti_patterns_to_avoid": [
+          "new inside service",
+          "bypassing DI container",
+          "process.env inline",
+          "untestable coupling"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 5,
+      "category": "module-structure",
+      "prompt": "This AppModule imports everything. Is this a good structure?\n```typescript\n@Module({\n  imports: [UsersModule, OrdersModule, ProductsModule, PaymentsModule, AuthModule, EmailModule, LoggingModule, CacheModule, DatabaseModule],\n  controllers: [AppController],\n  providers: [AppService, UserService, OrderService, ProductService, PaymentService],\n})\nexport class AppModule {}\n```",
+      "expected_output": "The AppModule is a god module. Services belong inside their own feature modules, not piled into AppModule. Each feature module exports its public API. AppModule only orchestrates feature modules.",
+      "files": [],
+      "expectations": [
+        "Services moved to their respective feature modules",
+        "AppModule only imports feature modules",
+        "Each feature module exports its public API",
+        "No service pile-up in root module",
+        "Cross-module access via exports, not direct import"
+      ],
+      "benchmarks": {
+        "principles_applied": ["SRP"],
+        "comment_rule_target": "WHY if explaining bounded contexts",
+        "naming_rule_target": "PascalCase modules",
+        "anti_patterns_to_avoid": [
+          "god module",
+          "services piled in root",
+          "no module boundaries",
+          "feature modules without exports"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 6,
+      "category": "error-handling",
+      "prompt": "How should this service report errors?\n```typescript\n@Injectable()\nexport class UserService {\n  async findById(id: number) {\n    const user = await this.repo.findOne(id);\n    if (!user) {\n      return null;\n    }\n    if (user.deleted) {\n      return { error: 'deleted' };\n    }\n    return user;\n  }\n}\n```",
+      "expected_output": "Returning null or `{ error }` objects mixes success and failure in the return type. Throw domain exceptions (`UserNotFoundException`, `UserDeletedException`). Let exception filters map them to HTTP responses.",
+      "files": [],
+      "expectations": [
+        "Domain exceptions thrown instead of returning null",
+        "No mixed success/error return shapes",
+        "Exception filters handle HTTP mapping",
+        "Consistent error reporting pattern"
+      ],
+      "benchmarks": {
+        "principles_applied": [],
+        "comment_rule_target": "WHY if explaining exception strategy",
+        "naming_rule_target": "descriptive exception names",
+        "anti_patterns_to_avoid": [
+          "returning null on error",
+          "mixed return shapes",
+          "error objects in success path",
+          "no domain exceptions"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    }
+  ]
+}

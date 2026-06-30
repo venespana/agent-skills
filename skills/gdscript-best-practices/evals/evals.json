@@ -1,0 +1,192 @@
+{
+  "skill_name": "gdscript-best-practices",
+  "version": "1.0",
+  "benchmark_schema": {
+    "rubric": {
+      "principles_adherence": "0-3 — Applied relevant SOLID/YAGNI/KISS/DRY? 0=ignored, 1=mentioned, 2=applied, 3=applied with trade-off discussion",
+      "comment_quality": "0-3 — WHY-only comments? 0=narrative, 1=mixed, 2=mostly WHY, 3=WHY only or none needed",
+      "naming_descriptiveness": "0-3 — Intentional names? 0=single letters, 3=self-documenting",
+      "anti_patterns_avoided": "0-3 — Avoided all listed anti-patterns? 0=all present, 3=none"
+    },
+    "pass_threshold": "All rubric items >= 2. Total >= 8/12 to pass.",
+    "applies_principles": ["SRP", "OCP", "LSP", "ISP", "DIP", "YAGNI", "KISS", "DRY"]
+  },
+  "evals": [
+    {
+      "id": 1,
+      "category": "naming-and-comments",
+      "prompt": "Review this GDScript function and improve it following best practices:\n```gdscript\nfunc f(x, y):\n    var t = x + y\n    # This function adds two numbers and returns the sum\n    return t * 2\n```",
+      "expected_output": "Function renamed to a verb phrase. Variables renamed with intent. Multiplication by 2 extracted to a named constant if it has business meaning, otherwise left inline (KISS). Narrative comment removed.",
+      "files": [],
+      "expectations": [
+        "Function renamed (e.g., `calculate_doubled_sum`)",
+        "Parameters renamed (no `x`, `y`)",
+        "Local variable `t` renamed to a noun phrase",
+        "No narrative comment explaining what the code does",
+        "If 2x has business meaning, it is a named constant"
+      ],
+      "benchmarks": {
+        "principles_applied": ["KISS"],
+        "comment_rule_target": "no WHAT/HOW comments",
+        "naming_rule_target": "snake_case, descriptive, verbs for functions",
+        "anti_patterns_to_avoid": [
+          "single-letter names",
+          "narrative WHAT comments",
+          "magic number 2 without constant"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
+          "naming_descriptiveness": 3,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 2,
+      "category": "static-typing",
+      "prompt": "This script mixes static and dynamic typing. Fix it:\n```gdscript\nvar player_name = \"Hero\"\nvar health: int = 100\nvar speed = 5.0\n\nfunc take_damage(amount):\n    health = health - amount\n```",
+      "expected_output": "All variables and function signatures fully type-annotated. No mixing of inferred and declared types. Return type declared.",
+      "files": [],
+      "expectations": [
+        "All variables have explicit type annotations",
+        "Function parameters typed",
+        "Function return type declared",
+        "No mixing of `var x = ...` and `var x: int = ...` styles"
+      ],
+      "benchmarks": {
+        "principles_applied": [],
+        "comment_rule_target": "no comments needed",
+        "naming_rule_target": "snake_case, descriptive",
+        "anti_patterns_to_avoid": [
+          "mixing inferred and declared types",
+          "untyped function parameters",
+          "missing return type"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 3,
+      "category": "SRP-and-refactoring",
+      "prompt": "This Player class does too much. Refactor it:\n```gdscript\nextends CharacterBody2D\nclass_name Player\n\nvar health := 100\nvar inventory := []\n\nfunc take_damage(amount: int) -> void:\n    health -= amount\n    save_to_disk()\n    play_sound()\n    update_ui()\n\nfunc save_to_disk() -> void:\n    var file = FileAccess.open(\"user://save.json\", FileAccess.WRITE)\n    file.store_var({\"health\": health, \"inventory\": inventory})\n\nfunc play_sound() -> void:\n    $AudioStreamPlayer.play()\n\nfunc update_ui() -> void:\n    $UI/HealthBar.value = health\n```",
+      "expected_output": "Split by actor: Player (domain), SaveService (persistence), AudioService (sound), UIService (presentation). Player emits signals; services listen.",
+      "files": [],
+      "expectations": [
+        "Persistence logic separated into its own class/autoload",
+        "UI updates separated from player logic via signals",
+        "Audio playback separated",
+        "Player emits events; consumers react",
+        "Each new class has one clear actor"
+      ],
+      "benchmarks": {
+        "principles_applied": ["SRP"],
+        "comment_rule_target": "WHY comments only",
+        "naming_rule_target": "PascalCase classes, snake_case methods",
+        "anti_patterns_to_avoid": [
+          "god class doing 4 unrelated things",
+          "tight coupling between player and UI/audio/save",
+          "direct method calls across concerns"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 3,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 4,
+      "category": "YAGNI-overengineering",
+      "prompt": "I'm building a config loader. Here is my draft:\n```gdscript\nclass_name ConfigLoaderBase\n\nfunc load_config(path: String) -> Config: pass\nfunc load_remote_config(url: String) -> Config: pass\nfunc load_encrypted_config(path: String, key: String) -> Config: pass\nfunc load_cached_config(path: String, ttl: int) -> Config: pass\n```",
+      "expected_output": "Reject the abstraction. YAGNI: only `load_config(path)` exists today. Add other variants when a real caller needs them.",
+      "files": [],
+      "expectations": [
+        "Identifies YAGNI violation",
+        "Recommends keeping only the one method with a real caller",
+        "Suggests adding variants when a real need arises",
+        "Does not invent a generic strategy pattern for one implementation"
+      ],
+      "benchmarks": {
+        "principles_applied": ["YAGNI", "KISS"],
+        "comment_rule_target": "no comments needed",
+        "naming_rule_target": "snake_case methods",
+        "anti_patterns_to_avoid": [
+          "speculative generality",
+          "abstract base class with one implementation",
+          "premature polymorphism"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 5,
+      "category": "signals",
+      "prompt": "This signal usage has problems. Fix it:\n```gdscript\nsignal health_changed\n\nfunc take_damage(amount):\n    health -= amount\n    emit_signal(\"health_changed\")\n```",
+      "expected_output": "Signal declared with typed args. Emitted via typed `signal_name.emit()` not string-based `emit_signal`. Health value passed as argument.",
+      "files": [],
+      "expectations": [
+        "Signal declared with typed parameters",
+        "Signal emitted via `.emit()` method, not `emit_signal`",
+        "Health value passed in the signal",
+        "No string-based signal connections"
+      ],
+      "benchmarks": {
+        "principles_applied": [],
+        "comment_rule_target": "no comments needed",
+        "naming_rule_target": "past tense signal name",
+        "anti_patterns_to_avoid": [
+          "string-based emit_signal",
+          "untyped signals",
+          "signal without payload data"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 6,
+      "category": "autoload-misuse",
+      "prompt": "I have this autoload for managing the current player. Is this a good use of autoload?\n```gdscript\n# Autoload: PlayerManager.gd\nvar current_player: Player\nvar player_health := 100\nvar player_position := Vector2.ZERO\n\nfunc set_player(p: Player) -> void:\n    current_player = p\n    player_health = p.health\n    player_position = p.position\n```",
+      "expected_output": "Autoloads are for stateless services. Per-instance player state does not belong in an autoload. Pass the player as a parameter or use a proper scene-based reference.",
+      "files": [],
+      "expectations": [
+        "Identifies autoload misuse for per-instance state",
+        "Recommends removing player state from autoload",
+        "Suggests passing player as parameter or using scene references",
+        "Keeps autoload for truly global stateless services only"
+      ],
+      "benchmarks": {
+        "principles_applied": ["SRP"],
+        "comment_rule_target": "WHY if explaining the autoload rule",
+        "naming_rule_target": "snake_case vars",
+        "anti_patterns_to_avoid": [
+          "per-instance state in autoload",
+          "god autoload",
+          "duplicating player state"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    }
+  ]
+}
