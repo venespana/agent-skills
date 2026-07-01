@@ -1,54 +1,80 @@
 ---
 name: gdscript-best-practices
-description: "Trigger: GDScript, Godot, .gd files, Godot 4 scripting. Enforce clean code, static typing, and SOLID/KISS/DRY principles in GDScript."
+description: "Trigger: GDScript, Godot, .gd files, Godot 4 scripting. Enforce clean code, static typing, SOLID/KISS/DRY, architecture, and performance in GDScript."
 license: Apache-2.0
 metadata:
   author: venespana
-  version: "1.0"
+  version: "1.1"
 ---
 
 ## Activation Contract
 
-Load when writing, reviewing, or refactoring GDScript (`.gd`) files in Godot 4.x projects. Applies to: new scripts, code review, refactoring autoloads/signals/scenes.
+Load when writing, reviewing, or refactoring GDScript (`.gd`) files in Godot 4.x projects.
 
 ## Hard Rules
 
-1. **Static typing: all or nothing.** Never mix `var x = 5` with `var y: int = 5`. Annotate all signatures and members.
-2. **Naming follows Godot style:** `snake_case` for vars/funcs/files, `PascalCase` for classes/nodes, `_underscore` for private, past tense for signals (`health_changed`).
-3. **Signals are typed:** `signal health_changed(new_value: int, max: int)`. Connect via Callable, never string-based.
-4. **Comments are WHY only.** No `# this adds two numbers`. Names carry intent; silence is correct.
-5. **No magic numbers.** Extract to `const MAX_HEALTH := 100`.
-6. **One responsibility per scene/script.** Split god classes by actor (domain, persistence, UI, audio).
-7. **Autoloads are stateless services only.** Never per-instance state.
-8. **`_process` stays cheap.** Heavy logic goes to signals + state machines.
-9. **Prefer early return over nested `if`.** Guard clauses first, main logic at base indentation. Max 2 levels of nesting.
+### Typing
+1. **Static typing: all or nothing.** Never mix `var x = 5` with `var y: int = 5`. Annotate all signatures, parameters, return types, members.
+2. **Typed signals.** `signal health_changed(new_value: int, max: int)`. Emit via `.emit()`, never string-based.
+
+### Naming
+3. **Godot style.** `snake_case` vars/funcs/files, `PascalCase` classes/nodes, `_underscore` private, past tense signals.
+
+### Code Quality
+4. **Comments are WHY only.** Names carry intent.
+5. **No magic numbers.** `const MAX_HEALTH := 100`.
+6. **Early return.** Max 2 levels nesting. Drop `else` after returning `if`.
+7. **One responsibility per function.** ≤20 lines. Extract when exceeded.
+
+### Architecture
+8. **Scene composition over inheritance.** Split god classes by actor (domain/persistence/UI/audio).
+9. **Autoloads are stateless services.** Never per-instance state.
+10. **Inject dependencies.** Signals, Callable props, or `@export`. No hard-coded paths.
+11. **Resources for data, Nodes for behavior.** Data-only → Resource/RefCounted.
+12. **Consider alternatives for mass nodes.** Object/RefCounted over Node for 1000s of items.
+
+### Performance
+13. **`_process` stays cheap.** Signals, state machines, `Timer` for heavy work.
+14. **`_physics_process` for physics. `_process` for visuals. `_unhandled_input` for input.**
+15. **Cache node refs in hot paths.** `@onready` — never `get_node()` in `_process`.
+16. **`queue_free()` over `free()`.** Immediate free orphans children.
+17. **Pool frequently spawned entities.**
+
+### Lifecycle
+18. **Connect in `_enter_tree`, disconnect in `_exit_tree`.** Or `CONNECT_ONE_SHOT`.
+19. **`NOTIFICATION_PARENTED`** fires when added to any parent — use for self-configuring nodes.
 
 ## Decision Gates
 
 | Situation | Action |
 |---|---|
-| Mixing typed and untyped vars | Pick one style project-wide (prefer typed) |
-| Class does save + UI + audio | Split by concern; emit signals |
-| Autoload growing past 10 methods | It is a god object — decompose |
-| Function > 20 lines | Extract; likely violates SRP |
-| `# comment` narrating code | Delete it; rename if unclear |
-| 3+ levels of nested `if` | Flatten with guard clauses (early return) |
-| `if` branch returns but `else` still present | Drop the `else` |
-| Speculative method "for flexibility" | YAGNI — remove until a real caller exists |
+| Mixed typing | Pick one (typed) |
+| God class (save+UI+audio) | Split by actor |
+| Autoload growing | Decompose |
+| Per-instance state in autoload | Move to scene tree |
+| `get_node()` in `_process` | `@onready` cache |
+| `free()` in callback | `queue_free()` |
+| Node for data | `Resource`/RefCounted |
+| if/elif chain | State machine |
+| 3+ nested `if` | Guard clauses |
+| Speculative method | YAGNI |
 
 ## Execution Steps
 
-1. Read `references/common-principles.md` for SOLID/YAGNI/KISS/DRY + naming/comment rules.
-2. Read `references/gdscript-base.md` for Godot-specific patterns (typing, signals, scenes, lifecycle).
-3. Apply the hard rules above to every `.gd` file touched.
-4. For refactors: identify actors, split by SRP, use signals for cross-concern communication.
-5. Verify no mixing of static/dynamic typing.
+1. Read `references/common-principles.md` + `references/gdscript-base.md`.
+2. Read architecture/design/performance refs as needed for the task.
+3. Apply hard rules. For refactors: split by actor, wire via signals.
+4. Profile before optimizing.
 
 ## Output Contract
 
-Return: files modified, principles applied, anti-patterns removed, and any SRP splits made.
+Return: files modified, principles applied, anti-patterns removed.
 
 ## References
 
-- `references/common-principles.md` — SOLID, YAGNI, KISS, DRY, naming & comment convention.
-- `references/gdscript-base.md` — Godot 4 static typing, signals, scenes, autoloads, lifecycle.
+- `references/common-principles.md` — SOLID, YAGNI, KISS, DRY, naming.
+- `references/gdscript-base.md` — typing, signals, scenes, lifecycle.
+- `references/godot-architecture.md` — scene composition, autoloads.
+- `references/godot-design-patterns.md` — node alternatives, notifications, state machines.
+- `references/godot-project.md` — project structure, VCS.
+- `references/gdscript-performance.md` — typed GDScript, pooling, profiling.

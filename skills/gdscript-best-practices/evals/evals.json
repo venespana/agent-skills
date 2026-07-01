@@ -1,6 +1,6 @@
 {
   "skill_name": "gdscript-best-practices",
-  "version": "1.0",
+  "version": "1.1",
   "benchmark_schema": {
     "rubric": {
       "principles_adherence": "0-3 — Applied relevant SOLID/YAGNI/KISS/DRY? 0=ignored, 1=mentioned, 2=applied, 3=applied with trade-off discussion",
@@ -208,6 +208,7 @@
     },
     {
       "id": 7,
+      "category": "early-return",
       "prompt": "This function has nested conditionals. Refactor using early returns:\n```gdscript\nfunc process_damage(target: Node, amount: int, source: Node) -> Dictionary:\n    if target:\n        if target.has_method(\"take_damage\"):\n            if amount > 0:\n                if source:\n                    target.take_damage(amount)\n                    return {\"success\": true}\n                else:\n                    return {\"success\": false, \"reason\": \"no source\"}\n            else:\n                return {\"success\": false, \"reason\": \"invalid amount\"}\n        else:\n            return {\"success\": false, \"reason\": \"cannot take damage\"}\n    else:\n        return {\"success\": false, \"reason\": \"no target\"}\n```",
       "expected_output": "Flatten with guard clauses. Validate each precondition and return early. Main logic (take_damage call) at base indentation.",
       "expectations": [
@@ -235,6 +236,136 @@
           "principles_adherence": 3,
           "comment_quality": 3,
           "naming_descriptiveness": 2,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 8,
+      "category": "scene-architecture",
+      "prompt": "This game scene is a god scene doing everything in one script:\n```gdscript\n# Main.tscn script\nextends Node2D\n\nvar gold := 0\nvar enemies_killed := 0\n\nfunc _process(delta: float) -> void:\n    if Input.is_action_pressed(\"ui_accept\"):\n        spawn_enemy()\n    update_ui()\n\nfunc spawn_enemy() -> void:\n    var e = Enemy.new()\n    e.position = Vector2(randf() * 1000, randf() * 600)\n    add_child(e)\n    e.tree_exited.connect(_on_enemy_killed)\n\nfunc update_ui() -> void:\n    $UI/GoldLabel.text = str(gold)\n    $UI/KillsLabel.text = str(enemies_killed)\n\nfunc _on_enemy_killed() -> void:\n    enemies_killed += 1\n    gold += 10\n    play_sound_effect(\"coin.wav\")\n\nfunc play_sound_effect(path: String) -> void:\n    $AudioStreamPlayer.stream = load(path)\n    $AudioStreamPlayer.play()\n```",
+      "expected_output": "Split into composed scenes: World (manages enemy spawning via enemy spawner node), UI (updates own label), AudioManager (autoload for sound). Main becomes a thin coordinator. Enemies killed and gold are not global state — pass them via signals to UI.",
+      "files": [],
+      "expectations": [
+        "Enemy spawning moved to a dedicated spawner script/node",
+        "UI updated via signals from domain logic",
+        "Audio decoupled into autoload or component",
+        "Gold/enemies_killed tracked in appropriate scope, not as globals",
+        "Main.gd becomes thin coordinator"
+      ],
+      "benchmarks": {
+        "principles_applied": [
+          "SRP",
+          "DIP"
+        ],
+        "comment_rule_target": "WHY comments where logic is non-obvious",
+        "naming_rule_target": "snake_case functions, PascalCase scenes/nodes",
+        "anti_patterns_to_avoid": [
+          "god scene doing everything",
+          "per-instance state in global/autoload",
+          "direct node access across concerns"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 3,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 9,
+      "category": "node-vs-resource",
+      "prompt": "A designer wants to create 100 weapon types for an RPG. Someone suggested making each one a scene with a Node2D. Refactor this:\n```gdscript\n# weapon.gd\nextends Node2D\n\nvar damage := 10\nvar attack_speed := 1.0\nvar range_units := 1.5\nvar critical_chance := 0.1\nvar fire_effect := \"fire_particle.tscn\"\n\nfunc get_damage() -> int:\n    return damage\n\nfunc get_attack_speed() -> float:\n    return attack_speed\n```",
+      "expected_output": "Convert to a Resource. Node2D has no behavior here — it's pure data. WeaponData Resource with @export fields. Each weapon is a .tres file. Attach to a weapon holder node only when the player equips it.",
+      "files": [],
+      "expectations": [
+        "WeaponData Resource class with @export fields",
+        "damage, attack_speed, range_units, critical_chance, fire_effect as Resource properties",
+        "No Node2D subclass — Resource is sufficient",
+        "Individual weapon instances as .tres files",
+        "Weapon holder node at runtime picks up the Resource"
+      ],
+      "benchmarks": {
+        "principles_applied": [
+          "KISS",
+          "SRP"
+        ],
+        "comment_rule_target": "no comments needed",
+        "naming_rule_target": "snake_case Resource properties",
+        "anti_patterns_to_avoid": [
+          "Node for data-only objects",
+          "unnecessary scene overhead for static data"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 3,
+          "naming_descriptiveness": 3,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 10,
+      "category": "performance",
+      "prompt": "This code has multiple performance problems. Identify and fix them:\n```gdscript\nextends Node2D\n\nfunc _process(delta: float) -> void:\n    var player = get_node(\"/root/Main/World/Player\")\n    var health = get_node(\"/root/Main/World/Player/HealthBar\")\n    health.value = player.health\n    \n    var enemies = get_tree().get_nodes_in_group(\"enemies\")\n    for enemy in enemies:\n        var e = load(\"res://enemies/enemy.tscn\").instantiate()\n        add_child(e)\n```",
+      "expected_output": "Fix: (1) Cache node paths with @onready — no get_node string lookups in _process. (2) Cache get_tree().get_nodes_in_group result, don't call every frame. (3) Enemy instantiation in _process loop — use an object pool or instantiate once at _ready. (4) Typed GDScript throughout.",
+      "files": [],
+      "expectations": [
+        "@onready cache for Player and HealthBar references",
+        "Enemy group lookup cached in member variable, updated on tree changes",
+        "Enemy instantiation moved out of _process — pool or _ready",
+        "Static typing applied throughout",
+        "No string paths in _process"
+      ],
+      "benchmarks": {
+        "principles_applied": [
+          "KISS"
+        ],
+        "comment_rule_target": "WHY for non-obvious performance decisions",
+        "naming_rule_target": "snake_case throughout",
+        "anti_patterns_to_avoid": [
+          "get_node in _process with string paths",
+          "instantiation in _process loop",
+          "no object pooling for frequently spawned entities",
+          "dynamic typing in hot paths"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 3,
+          "anti_patterns_avoided": 3
+        }
+      }
+    },
+    {
+      "id": 11,
+      "category": "autoload-misuse-instance-state",
+      "prompt": "This autoload accumulates per-instance state from multiple players in a multiplayer game. Refactor:\n```gdscript\n# MultiplayerState.gd (autoload)\nvar player_scores: Dictionary = {}\nvar player_positions: Dictionary = {}\nvar player_healths: Dictionary = {}\n\nfunc register_player(pid: int, pos: Vector2, hp: int) -> void:\n    player_scores[pid] = 0\n    player_positions[pid] = pos\n    player_healths[pid] = hp\n\nfunc update_score(pid: int, points: int) -> void:\n    player_scores[pid] = player_scores.get(pid, 0) + points\n\nfunc update_position(pid: int, pos: Vector2) -> void:\n    player_positions[pid] = pos\n\nfunc get_leaderboard() -> Array:\n    return player_scores.keys().map(func k: return {\"id\": k, \"score\": player_scores[k]})\n```",
+      "expected_output": "Per-instance state in an autoload is a red flag. Extract a PlayerState class (Resource or RefCounted). The autoload manages a Dictionary<player_id, PlayerState>. Each player's state is self-contained. The autoload stays as a stateless registry/service.",
+      "files": [],
+      "expectations": [
+        "PlayerState Resource or RefCounted class with score, position, health",
+        "Autoload becomes a stateless player registry",
+        "Each player's state encapsulated in PlayerState instance",
+        "register_player creates and stores a PlayerState",
+        "get_leaderboard iterates PlayerState instances"
+      ],
+      "benchmarks": {
+        "principles_applied": [
+          "SRP",
+          "DIP"
+        ],
+        "comment_rule_target": "WHY for the architectural decision",
+        "naming_rule_target": "PascalCase for PlayerState, snake_case methods",
+        "anti_patterns_to_avoid": [
+          "per-instance state in autoload",
+          "dictionary-based pseudo-objects without encapsulation"
+        ],
+        "rubric": {
+          "principles_adherence": 3,
+          "comment_quality": 2,
+          "naming_descriptiveness": 3,
           "anti_patterns_avoided": 3
         }
       }
