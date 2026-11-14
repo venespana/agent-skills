@@ -4,7 +4,7 @@ description: "Trigger: React, ReactJS, JSX, TSX, hooks, components, React 19. En
 license: Apache-2.0
 metadata:
   author: venespana
-  version: "1.1"
+  version: "1.2"
 ---
 
 ## Activation Contract
@@ -36,6 +36,10 @@ Load when writing, reviewing, or refactoring React components (`.jsx`/`.tsx`). A
 16. **No magic numbers/strings.** Named constants.
 17. **Prefer early return over nested `if`.** Guard clauses first, main logic at base indentation. Max 2 levels of nesting.
 
+### Structure
+18. **One component per file.** Each `.jsx`/`.tsx` file exports exactly one component. Non-component helpers go to their own module.
+19. **Components are visual-only; behavior lives in hooks.** Business logic, actions, data fetching, and event behavior go into custom hooks (`useXxx`); the component renders and delegates to them. Trivial inline state toggles (e.g. `onClick={() => setOpen(true)}`) are allowed.
+
 ## Decision Gates
 
 | Situation | Action |
@@ -52,6 +56,8 @@ Load when writing, reviewing, or refactoring React components (`.jsx`/`.tsx`). A
 | 3+ levels of nested `if` | Flatten with guard clauses (early return) |
 | `if` branch returns but `else` still present | Drop the `else` |
 | Prop drilling > 2 levels | Consider context or composition |
+| 2+ components exported from one file | Split into one file per component |
+| Non-trivial handler/business logic inline in component | Extract to a custom hook (`useXxx`) and delegate |
 
 ## Execution Steps
 
