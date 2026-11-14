@@ -4,7 +4,7 @@ description: "Trigger: React, ReactJS, JSX, TSX, hooks, components, React 19. En
 license: Apache-2.0
 metadata:
   author: venespana
-  version: "1.2"
+  version: "1.3"
 ---
 
 ## Activation Contract
@@ -61,17 +61,18 @@ Load when writing, reviewing, or refactoring React components (`.jsx`/`.tsx`). A
 
 ## Execution Steps
 
-1. Read `references/common-principles.md` for SOLID/YAGNI/KISS/DRY + naming/comment rules.
-2. Read `references/ts-js-base.md` for shared TS/JS conventions.
-3. Read the performance references under `references/react-perf-*.md` for the full rule set (55+ rules adapted from Vercel, Next.js excluded). Key files:
-   - `react-perf-async.md` — CRITICAL: eliminate Promise waterfalls
-   - `react-perf-bundle.md` — CRITICAL: barrel imports, code splitting
-   - `react-perf-rerender-1.md` / `react-perf-rerender-2.md` — re-render optimization
-   - `react-perf-client.md` — client data fetching + advanced patterns
-   - `react-perf-rendering-1.md` / `react-perf-rendering-2.md` — rendering performance
-   - `react-perf-js-1.md` / `react-perf-js-2.md` — JS micro-optimizations
-4. Apply hard rules above to every component/hook touched.
-5. For performance work: check for waterfalls, barrel imports, unnecessary re-renders, and missing code-splitting.
+1. Apply hard rules and Decision Gates to every component/hook touched.
+2. Load references on demand, matched to the task's symptom — never preload all of them:
+   - Sequential awaits / waterfalls → `references/react-perf-async.md`
+   - Barrel imports / bundle size / code splitting → `references/react-perf-bundle.md`
+   - Unnecessary re-renders / memoization / derived state → `references/react-perf-rerender-1.md` (part 2 only if needed)
+   - Large lists / rendering cost → `references/react-perf-rendering-1.md` (part 2 only if needed)
+   - JS hot paths / micro-optimizations → `references/react-perf-js-1.md` (part 2 only if needed)
+   - Client data fetching / advanced patterns → `references/react-perf-client.md`
+   - Naming / SOLID / comment rules → `references/common-principles.md`
+   - TS strictness / ESM / error-handling conventions → `references/ts-js-base.md`
+3. Creating or restructuring a component → follow `references/component-hook-template.md`.
+4. For performance work: check waterfalls, barrel imports, unnecessary re-renders, and missing code-splitting before optimizing.
 
 ## Output Contract
 
@@ -81,4 +82,5 @@ Return: files modified, correctness issues fixed, performance anti-patterns remo
 
 - `references/common-principles.md` — SOLID, YAGNI, KISS, DRY, naming & comment convention.
 - `references/ts-js-base.md` — ESM, async/await, error handling, config, logging, TypeScript strictness.
+- `references/component-hook-template.md` — canonical visual-only component + `useXxx` hook skeleton (Structure rules 18–19).
 - `references/react-perf-*.md` — 9 performance reference files (55+ rules adapted from Vercel, Next.js excluded). Load the relevant category for the task at hand.
