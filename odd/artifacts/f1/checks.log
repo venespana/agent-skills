@@ -1,0 +1,132 @@
+# F1 validation-flow — raw check output (2026-11-20T14:48Z)
+
+## T3 — independence grep (expected: ZERO hits)
+$ grep -nEi "/home/|freelance-dashboard|deck|gmail|graph|imap|smtp|electron|linear|figcraft|engram|skills\.sh" skills/validation-flow/SKILL.md
+grep exit=1 (1 = no matches) OK
+
+## T3b — sanctioned platform mentions (expected: only the S8 install targets, ~-paths)
+84:1. Copy this skill directory to `~/.config/opencode/skills/validation-flow/`
+85:2. Copy `commands/evidencia.md` to `~/.config/opencode/commands/evidencia.md`
+
+## T4 — SKILL.md frontmatter (structural)
+---
+name: validation-flow
+description: "Trigger: starting agent implementation work in a project without validation tiers, deciding what to delegate to an agent, assembling or reviewing a work-unit evidence package, reviewing agent-authored code, or setting commit gates for a repository."
+license: Apache-2.0
+metadata:
+  author: venespana
+  version: "1.0"
+---
+
+
+## T4b — command frontmatter + body markers (description / shell block / no-commit)
+---
+description: Assemble the work-unit evidence package (diff, checks, logs, screenshots, diagram)
+---
+
+Assemble the evidence package for the current work unit, per the
+34:Do not commit — the human's verdict gates it.
+
+## T4c — YAML parse (python3 + pyyaml, fallback documented)
+SKILL.md frontmatter YAML OK — validation-flow v1.0
+
+## work-unit diff (untracked + modified)
+ M README.md
+?? .atl/
+?? odd/
+?? skills/validation-flow/
+
+## line counts
+   91 skills/validation-flow/SKILL.md
+   34 skills/validation-flow/commands/evidencia.md
+   21 README.md
+   53 odd/tasks/f1-validation-flow-skill.md
+  199 total
+
+## T4b-fix — command shell block (raw, escaped correctly)
+
+Diff (already collected):
+
+!`git diff --stat && git status --short`
+
+## AUDIT RERUN (skill-improver apply) — 2026-11-20T15:13Z
+--- T3 independence grep (expect 0 hits) ---
+grep exit=1 (1 = no matches) OK
+--- T3b sanctioned mentions ---
+85:Copy this directory to `~/.config/opencode/skills/validation-flow/` and
+86:`commands/evidencia.md` to `~/.config/opencode/commands/evidencia.md`. The
+--- T4c YAML parse v1.1 ---
+YAML OK v1.1 — description 205 chars (MUST<=250: pass; SHOULD<=160: documented tradeoff)
+--- required sections order ---
+15:## Activation Contract
+21:## Hard Rules
+46:## Decision Gates
+57:## Execution Steps
+69:## Output Contract
+83:## Install (optional)
+89:## References
+--- body size ---
+  91  602 skills/validation-flow/SKILL.md
+approx tokens (words*1.33):
+800
+--- registry tool ---
+Skill registry refreshed (24 skills): /home/venespana/develop/skills/.atl/skill-registry.md
+--- POST-TRIM: size + YAML + independence ---
+  89  559 skills/validation-flow/SKILL.md
+approx tokens:
+743
+independence grep exit=1 (1 = clean)
+YAML OK v1.1, 205 chars description
+sections: 7
+--- FINAL: size, YAML, independence, registry ---
+  89  556 skills/validation-flow/SKILL.md
+approx tokens:
+739
+independence grep exit=1 (1 = clean)
+YAML OK v1.1 — 205 chars description (MUST<=250 pass)
+15:## Activation Contract 21:## Hard Rules 46:## Decision Gates 56:## Execution Steps 67:## Output Contract 81:## Install (optional) 87:## References 
+ M .gitignore
+ M README.md
+?? odd/
+?? skills/validation-flow/
+
+## RESTRUCTURE v1.2 — command dropped, script+template+references added (2026-11-20T15:32Z)
+--- T9 script syntax check + executable bit ---
+bash -n OK
+perms: -rwxr-xr-x
+--- T3 independence grep over the WHOLE skill dir (expect 0 hits; sanctioned: opencode tilde-paths in SKILL.md install) ---
+grep exit=1 (1 = no matches) OK
+--- T4c YAML parse v1.2 + description length ---
+YAML OK v1.2 — description 205 chars
+--- sections order ---
+15:## Activation Contract
+21:## Hard Rules
+46:## Decision Gates
+56:## Execution Steps
+68:## Output Contract
+75:## Install (optional)
+80:## References
+--- body size ---
+  87  520 skills/validation-flow/SKILL.md
+approx tokens:
+691
+--- kit layout ---
+skills/validation-flow/SKILL.md
+skills/validation-flow/assets/evidence-report.md
+skills/validation-flow/references/evidence-standard.md
+skills/validation-flow/scripts/collect-evidence.sh
+--- work-unit diff ---
+ M .gitignore
+ M AGENTS.md
+ M README.md
+ D openspec/changes/archive/2026-05-14-repo-structure/DESIGN.md
+ D openspec/changes/archive/2026-05-14-repo-structure/PROPOSAL.md
+ D openspec/changes/archive/2026-05-14-repo-structure/SPEC.md
+ D openspec/changes/archive/2026-05-14-repo-structure/TASKS.md
+ D openspec/changes/repo-structure/DESIGN.md
+ D openspec/changes/repo-structure/PROPOSAL.md
+ D openspec/changes/repo-structure/SPEC.md
+ D openspec/changes/repo-structure/TASKS.md
+ D openspec/config.yaml
+?? odd/
+?? skills/validation-flow/
