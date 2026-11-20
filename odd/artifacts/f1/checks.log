@@ -130,3 +130,13 @@ skills/validation-flow/scripts/collect-evidence.sh
  D openspec/config.yaml
 ?? odd/
 ?? skills/validation-flow/
+
+## T6 — install verification + functional smoke (2026-11-20T16:04Z)
+installed at: /home/venespana/.agents/skills/validation-flow (valid OpenCode scan location; NOT the ~/.config/opencode path planned in S8)
+loaded in-session: YES (user invoked $validation-flow — the session itself loaded it from that path)
+script perms: -rwxr-xr-x · bash -n OK
+functional smoke (sandbox /tmp/opencode/t6-smoke): fallback dir artifacts/<slug>/ correct when no odd/; diff.txt + status.txt collected; no-suite degradation message per S7 — GREEN
+DIVERGENCE (human review): installed SKILL.md differs from repo/main — (1) 'disable-model-invocation: true' + 'opencode/autoinvoke: false' present in installed copy (auto-invocation OFF, manual-only); (2) description wrapped multi-line (style guide: one physical line); (3) missing trailing newline. Repo/main holds the auto-allowed single-line v1.2.
+
+## ALIGNMENT — manual-only official (2026-11-20T16:06Z)
+user decision: manual-only official. Repo SKILL.md v1.3 adds disable-model-invocation: true + metadata opencode/autoinvoke: false (single-line description kept); installed copy re-synced from repo — diff: IDENTICAL. YAML parse OK.

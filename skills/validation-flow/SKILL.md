@@ -2,9 +2,11 @@
 name: validation-flow
 description: "Trigger: setting validation tiers or commit gates, delegating to agents, assembling or reviewing a work-unit evidence package, reviewing agent-authored code. Risk-tiered validation and delegation doctrine."
 license: Apache-2.0
+disable-model-invocation: true
 metadata:
   author: venespana
-  version: "1.2"
+  version: "1.3"
+  opencode/autoinvoke: false
 ---
 
 # Validation Flow
