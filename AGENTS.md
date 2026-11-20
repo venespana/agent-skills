@@ -17,15 +17,25 @@
 5. **Interactive flow**: After each phase (exploration, proposal, specs, design, tasks), show results and wait for user to say "continue" or "ff" before proceeding
 6. **Fast-forward (ff)**: When user says "ff", run proposal → specs → design → tasks automatically, but still present results and ask permission before implementation
 
-## SDD Workflow
+## ODD Workflow
 
-This project uses Spec-Driven Development (hybrid mode: openspec files + engram).
+This project uses ODD: one task document per feature under `odd/tasks/`, with
+objective, branch, delivery strategy, specs (S#), tasks (T#), delivery plan
+and a chronological log (L#).
 
 ```
-explore → propose → spec → design → tasks → apply → verify → archive
+odd task doc → implement per work unit → tangible evidence (screenshots,
+logs, diagrams, green check output) → user validation → commit
 ```
 
-Artifacts live in `openspec/` and are committed to git (team-visible).
+- Artifacts live in `odd/tasks/` and `odd/artifacts/<work-unit>/` and are
+  committed to git.
+- Evidence MUST be tangible per category — a claim without an artifact is not
+  evidence; non-applicable categories are reported `N/A — <reason>`.
+- Validation and delegation methodology: the `validation-flow` skill
+  (`skills/validation-flow/SKILL.md`).
+- History: the retired SDD workflow's `openspec/` directory was removed
+  (recoverable from git history).
 
 ---
 
